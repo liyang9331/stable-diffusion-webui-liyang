@@ -10,7 +10,10 @@
 #clone_dir="stable-diffusion-webui"
 
 # Commandline arguments for webui.py, for example: export COMMANDLINE_ARGS="--medvram --opt-split-attention"
-#export COMMANDLINE_ARGS=""
+# webui.py的命令行参数，例如：export Commandline_ARGS=“--medvram--opt split attention”
+# For many AMD gpus you MUST Add --precision full --no-half to COMMANDLINE_ARGS= in webui-user.sh to avoid black squares or crashing.*
+# 对于许多AMD GPU，您必须在webui-user.sh中的COMMANDLINE_ARGS=中添加 -precision full --no-half，以避免出现黑色方块或崩溃*
+export COMMANDLINE_ARGS="--precision full --no-half"
 
 # python3 executable
 #python_cmd="python3"
@@ -25,7 +28,7 @@
 #export LAUNCH_SCRIPT="launch.py"
 
 # install command for torch
-#export TORCH_COMMAND="pip install torch==1.12.1+cu113 --extra-index-url https://download.pytorch.org/whl/cu113"
+export TORCH_COMMAND="pip install torch==1.13.1+cu117 torchvision==0.14.1+cu117 --index-url https://download.pytorch.org/whl/cu117"
 
 # Requirements file to use for stable-diffusion-webui
 #export REQS_FILE="requirements_versions.txt"
