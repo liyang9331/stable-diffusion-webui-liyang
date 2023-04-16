@@ -1,55 +1,72 @@
 #!/usr/bin/env bash
+# linux shell script
 #################################################
 # Please do not make any changes to this file,  #
 # change the variables in webui-user.sh instead #
 #################################################
 
+
 # If run from macOS, load defaults from webui-macos-env.sh
-if [[ "$OSTYPE" == "darwin"* ]]; then
+# 如果从macOS运行，则从webui-macOS-env.sh加载默认值
+if [[ "$OSTYPE" == "darwin"* ]]
+then
+    # 如果 webui-macos-env.sh 为常规文件
     if [[ -f webui-macos-env.sh ]]
-        then
+    then
+        # Including ./webui-macos-env.sh script file and execute it
+        # 包含 ./webui-macos-env.sh 脚本文件并执行
         source ./webui-macos-env.sh
     fi
 fi
 
 # Read variables from webui-user.sh
+# 从webui-user.sh读取变量
 # shellcheck source=/dev/null
 if [[ -f webui-user.sh ]]
 then
+    # Including ./webui-user.sh script file and execute it
+    # 包含 ./webui-user.sh 脚本文件并执行
     source ./webui-user.sh
 fi
 
 # Set defaults
 # Install directory without trailing slash
+# 如果 install_dir 变量为空
 if [[ -z "${install_dir}" ]]
 then
     install_dir="/home/$(whoami)"
 fi
 
 # Name of the subdirectory (defaults to stable-diffusion-webui)
+# 如果 clone_dir 变量为空
 if [[ -z "${clone_dir}" ]]
 then
     clone_dir="stable-diffusion-webui"
 fi
 
 # python3 executable
+# 如果 python_cmd 变量为空
 if [[ -z "${python_cmd}" ]]
 then
     python_cmd="python3"
 fi
 
 # git executable
+# 如果 GIT 变量为空
 if [[ -z "${GIT}" ]]
 then
     export GIT="git"
 fi
 
 # python3 venv without trailing slash (defaults to ${install_dir}/${clone_dir}/venv)
+# python3 venv，不带尾部斜杠（默认为${install_dir}/${clone_dir}/venu）
+# 如果 venv_dir 变量为空
 if [[ -z "${venv_dir}" ]]
 then
     venv_dir="venv"
 fi
 
+# 如果 LAUNCH_SCRIPT 变量为空
 if [[ -z "${LAUNCH_SCRIPT}" ]]
 then
     LAUNCH_SCRIPT="launch.py"
@@ -76,12 +93,14 @@ export PIP_IGNORE_INSTALLED=0
 # Pretty print
 delimiter="################################################################"
 
+# printf:shell 输出命令
 printf "\n%s\n" "${delimiter}"
 printf "\e[1m\e[32mInstall script for stable-diffusion + Web UI\n"
 printf "\e[1m\e[34mTested on Debian 11 (Bullseye)\e[0m"
 printf "\n%s\n" "${delimiter}"
 
 # Do not run as root
+# 不以root身份运行
 if [[ $(id -u) -eq 0 && can_run_as_root -eq 0 ]]
 then
     printf "\n%s\n" "${delimiter}"
@@ -94,6 +113,7 @@ else
     printf "\n%s\n" "${delimiter}"
 fi
 
+# 如果.git 为目录
 if [[ -d .git ]]
 then
     printf "\n%s\n" "${delimiter}"
@@ -104,11 +124,21 @@ then
 fi
 
 # Check prerequisites
+# 检查先决条件
+# 此处|作为管道，将第一个命令的执行结果作为第二个命令的参数
+# grep:查找文件里符合条件的字符串或正则表达式
+# 查看显卡的详细信息
 gpu_info=$(lspci 2>/dev/null | grep VGA)
+# gpu_info输出示例：03:00.0 VGA compatible controller: Advanced Micro Devices, Inc. [AMD/ATI] Navi 23 [Radeon RX 6600/6600 XT/6600M] (rev c1)
+# shell case 语句，$gpu_info执行后得到的字符串 为值
 case "$gpu_info" in
-    *"Navi 1"*|*"Navi 2"*) export HSA_OVERRIDE_GFX_VERSION=10.3.0
+    *"Navi 1"*|*"Navi 2"*) 
+    # 将AMD Navi 10系和20系显卡仿冒成GFX1030，可以在ROCm中正常工作
+    export HSA_OVERRIDE_GFX_VERSION=10.3.0
     ;;
-    *"Renoir"*) export HSA_OVERRIDE_GFX_VERSION=9.0.0
+    # AMD Renoir 核心核心显卡
+    *"Renoir"*) 
+    export HSA_OVERRIDE_GFX_VERSION=9.0.0
         printf "\n%s\n" "${delimiter}"
         printf "Experimental support for Renoir: make sure to have at least 4GB of VRAM and 10GB of RAM or enable cpu mode: --use-cpu all --no-half"
         printf "\n%s\n" "${delimiter}"
@@ -116,9 +146,23 @@ case "$gpu_info" in
     *) 
     ;;
 esac
+
+# grep -q:
+# $gpu_info输出是否包含 AMD 并且 TORCH_COMMAND变量为空
 if echo "$gpu_info" | grep -q "AMD" && [[ -z "${TORCH_COMMAND}" ]]
 then
-    export TORCH_COMMAND="pip install torch torchvision --extra-index-url https://download.pytorch.org/whl/rocm5.2"
+    # pytorch 1.13.1 for linux pip python ROCm 5.2 强制安装
+    # export TORCH_COMMAND="pip install torch==1.13.1+rocm5.2 torchvision==0.14.1+rocm5.2 --extra-index-url https://download.pytorch.org/whl/rocm5.2 --upgrade --force-reinstall"
+    
+    # pytorch 1.13.1 for linux pip3 python ROCm 5.2
+    # export TORCH_COMMAND="pip3 install torch torchvision torchaudio --extra-index-url"
+
+    # pytorch 2.0.0 for linux pip3 python ROCm 5.4.2
+    export TORCH_COMMAND="pip install torch --index-url https://download.pytorch.org/whl/rocm5.4.2"
+
+     # pytorch 2.0.0 for linux pip python ROCm 5.4.2
+    # export TORCH_COMMAND="pip install torch torchvision --extra-index-url https://download.pytorch.org/whl/rocm5.2"
+
 fi  
 
 for preq in "${GIT}" "${python_cmd}"
