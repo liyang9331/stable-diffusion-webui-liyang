@@ -332,7 +332,6 @@ def webui():
         extra_networks.register_extra_network(extra_networks_hypernet.ExtraNetworkHypernet())
         startup_timer.record("initialize extra networks")
 
-
 if __name__ == "__main__":
     if cmd_opts.nowebui:
         api_only()
