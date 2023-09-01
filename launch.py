@@ -221,7 +221,7 @@ def run_extensions_installers(settings_file):
     for dirname_extension in list_extensions(settings_file):
         run_extension_installer(os.path.join(extensions_dir, dirname_extension))
 
-
+# 准备环境
 def prepare_environment():
     global skip_install
 
